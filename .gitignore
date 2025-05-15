@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Node.js
+node_modules/
+coverage/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Env files
+.env
