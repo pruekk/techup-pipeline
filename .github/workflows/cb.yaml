@@ -1,4 +1,4 @@
-name: CI with SonarCloud
+name: CharlieBank CI with SonarCloud
 
 on:
   push:
