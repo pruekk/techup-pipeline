@@ -3,7 +3,7 @@ name: CI with SonarCloud
 on:
   push:
     branches:
-      - main
+      - CharlieBank
   pull_request:
     types: [opened, synchronize, reopened]
 
