@@ -1,4 +1,4 @@
-name: CI with SonarCloud
+name: Scan dev branch
 
 on:
   push:
