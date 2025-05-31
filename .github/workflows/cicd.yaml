@@ -1,0 +1,56 @@
+name: CI + Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-deploy:
+    name: Build, Test, Analyze and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: .
+
+      - name: Authenticate with Google Cloud # Authenticate กับ Google Cloud โดยใช้ Service Account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}' # Secret ที่เก็บ JSON Key ของ Service Account
+
+      - name: Set up gcloud CLI # ติดตั้งและตั้งค่า gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }} # Project ID จาก GCP
+
+      - name: Deploy to Cloud Run # Deploy ขึ้น Cloud Run
+        if: ${{ github.event_name == 'push' }} # ให้ Deploy เฉพาะตอน push เข้า main เท่านั้น
+        run: |
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
+            --source . \
+            --region ${{ secrets.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated
