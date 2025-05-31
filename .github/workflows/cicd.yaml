@@ -45,7 +45,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }} # Project ID จาก GCP
-          components: ['beta']
+          install_components: 'beta'
 
       - name: Deploy to Cloud Run # Deploy ขึ้น Cloud Run
         if: ${{ github.event_name == 'push' }} # ให้ Deploy เฉพาะตอน push เข้า main เท่านั้น
