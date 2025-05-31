@@ -45,7 +45,6 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }} # Project ID จาก GCP
-          install_components: 'beta'
 
       - name: Deploy to Cloud Run # Deploy ขึ้น Cloud Run
         if: ${{ github.event_name == 'push' }} # ให้ Deploy เฉพาะตอน push เข้า main เท่านั้น
@@ -59,9 +58,8 @@ jobs:
       - name: Set Cloud Run Invoker Policy
         if: ${{ github.event_name == 'push' }}
         run: |
-          gcloud beta run services add-iam-policy-binding \
+          gcloud run services add-iam-policy-binding github-pipeline \
             ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
             --region=${{ secrets.GCP_REGION }} \
             --member=allUsers \
-            --role=roles/run.invoker \
-            --quiet # Added --quiet for non-interactive execution
+            --role=roles/run.invoker
