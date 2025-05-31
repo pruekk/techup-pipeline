@@ -58,8 +58,7 @@ jobs:
       - name: Set Cloud Run Invoker Policy
         if: ${{ github.event_name == 'push' }}
         run: |
-          gcloud run services add-iam-policy-binding github-pipeline \
-            ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
+          gcloud run services add-iam-policy-binding ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
             --region=${{ secrets.GCP_REGION }} \
             --member=allUsers \
             --role=roles/run.invoker
