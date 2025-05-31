@@ -45,6 +45,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }} # Project ID จาก GCP
+          components: ['beta']
 
       - name: Deploy to Cloud Run # Deploy ขึ้น Cloud Run
         if: ${{ github.event_name == 'push' }} # ให้ Deploy เฉพาะตอน push เข้า main เท่านั้น
@@ -55,12 +56,9 @@ jobs:
             --platform managed \
             --allow-unauthenticated
 
-      - name: Set Cloud Run Invoker Policy # Explicitly set IAM policy for unauthenticated invocations
-        if: ${{ github.event_name == 'push' }} # Apply only on push to 'main' branch
+      - name: Set Cloud Run Invoker Policy
+        if: ${{ github.event_name == 'push' }}
         run: |
-          # This command ensures that the Cloud Run service can be invoked by anyone (allUsers).
-          # This is often necessary even if --allow-unauthenticated was used during deploy,
-          # especially in CI/CD environments or when deploying from source.
           gcloud beta run services add-iam-policy-binding \
             ${{ secrets.CLOUD_RUN_SERVICE_NAME }} \
             --region=${{ secrets.GCP_REGION }} \
