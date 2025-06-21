@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: node-app-deployment
+    namespace: cicd-pipeline-alpha
+    labels:
+        app: node-app
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: node-app
+    template:
+        metadata:
+            labels:
+                app: node-app
+        spec:
+            containers:
+                - name: node-app
+                  image: asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/week7/node-app:REPLACE_IMAGE_TAG
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 3000
+                  resources:
+                      limits:
+                          cpu: "500m"
+                          memory: "512Mi"
+                      requests:
+                          cpu: "100m"
+                          memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: node-app-service
+    namespace: cicd-pipeline-alpha
+    labels:
+        app: node-app
+spec:
+    selector:
+        app: node-app
+    ports:
+        - protocol: TCP
+          port: 3000
+          targetPort: 3000
+          name: http
+    type: ClusterIP

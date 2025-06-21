@@ -1,0 +1,88 @@
+name: CI Build, Push, and Deploy to GKE
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            # 1. Checkout Source Code
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            # 2. Setup Node.js (ถ้าใช้ build node หรือรัน sonar)
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: "18"
+
+            # 3. Install Node dependencies (ข้ามได้ถ้าไม่มี node)
+            - name: Install Node dependencies
+              run: npm install
+
+            # 4. SonarCloud Scan (ข้ามได้ถ้าไม่ใช้)
+            - name: SonarCloud Scan
+              uses: SonarSource/sonarcloud-github-action@v2
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+              with:
+                  projectBaseDir: .
+
+            # 5. SonarCloud Quality Gate
+            - name: Check SonarCloud Quality Gate
+              uses: SonarSource/sonarcloud-quality-gate-action@master
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+            # 6. Auth Google Cloud
+            - name: Authenticate with Google Cloud
+              uses: google-github-actions/auth@v2
+              with:
+                  credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+            # 7. Setup gcloud CLI
+            - name: Set up gcloud CLI
+              uses: google-github-actions/setup-gcloud@v2
+              with:
+                  project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+            # 8. Configure Docker for GCR
+            - name: Configure Docker to use gcloud as a credential helper
+              run: gcloud auth configure-docker asia-southeast1-docker.pkg.dev
+
+            # 9. Build & Push Go Docker Image
+            - name: Build & Push Go Docker Image
+              run: |
+                  docker build -f go/dockerfile -t asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/week7/go-app:${{ github.sha }} .
+                  docker push asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/week7/go-app:${{ github.sha }}
+
+            # 10. Build & Push Node Docker Image
+            - name: Build & Push Node Docker Image
+              run: |
+                  docker build -f node/dockerfile -t asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/week7/node-app:${{ github.sha }} .
+                  docker push asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/week7/node-app:${{ github.sha }}
+
+            # 11. Get GKE Credentials
+            - name: Get GKE Credentials
+              run: |
+                  gcloud container clusters get-credentials techup-self-managed --zone asia-southeast1-a --project devops-docker-demo-458213
+
+            # 12. Update image tag in deployment manifests (ใช้ sed แก้ tag ใน yaml)
+            - name: Update image tag in deployment manifests
+              run: |
+                  sed -i "s|REPLACE_IMAGE_TAG|${{ github.sha }}|g" k8s/go-app-deployment.yaml
+                  sed -i "s|REPLACE_IMAGE_TAG|${{ github.sha }}|g" k8s/node-app-deployment.yaml
+
+            # 13. Deploy to GKE (kubectl apply)
+            - name: Deploy to GKE
+              run: |
+                  kubectl apply -f k8s/go-app-deployment.yaml
+                  kubectl apply -f k8s/node-app-deployment.yaml
+                  kubectl apply -f k8s/go-app-service.yaml
+                  kubectl apply -f k8s/node-app-service.yaml
