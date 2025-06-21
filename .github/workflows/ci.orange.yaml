@@ -21,9 +21,12 @@ jobs:
 
     - name: Download dependencies
       run: go mod download
+      working-directory: ./golang  
 
     - name: Run build
       run: go build -v .
+      working-directory: ./golang
 
-    - name: Run test (optional)
+    - name: Run test
       run: go test ./...
+      working-directory: ./golang
