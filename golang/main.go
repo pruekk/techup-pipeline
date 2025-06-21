@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"net/http"
 	"strconv"
 	"time"
@@ -72,7 +72,6 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 
 		// Print traffic information
 		log.WithFields(log.Fields{
-			"time":     time.Now().Format(time.RFC3339),
 			"method":   r.Method,
 			"path":     r.URL.Path,
 			"status":   statusCode,
