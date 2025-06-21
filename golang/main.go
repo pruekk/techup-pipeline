@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+import log "github.com/sirupsen/logrus"
 
 type responseWriter struct {
 	http.ResponseWriter
@@ -70,14 +71,13 @@ func prometheusMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// Print traffic information
-		fmt.Printf("[%s] %s %s - %d %d bytes - %v\n",
-			time.Now().Format("2006-01-02 15:04:05"),
-			r.Method,
-			r.URL.Path,
-			statusCode,
-			responseSize,
-			duration,
-		)
+		log.WithFields(log.Fields{
+			"method":   r.Method,
+			"path":     r.URL.Path,
+			"status":   statusCode,
+			"size":     responseSize,
+			"duration": duration.Seconds(),
+		}).Info("HTTP request completed")
 
 		responseStatus.WithLabelValues(strconv.Itoa(statusCode)).Inc()
 		totalRequests.WithLabelValues(path).Inc()
@@ -90,6 +90,9 @@ func init() {
 	prometheus.Register(totalRequests)
 	prometheus.Register(responseStatus)
 	prometheus.Register(httpDuration)
+
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {

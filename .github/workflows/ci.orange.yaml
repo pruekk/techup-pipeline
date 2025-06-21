@@ -1,0 +1,32 @@
+name: CI for Orange Branch
+
+on:
+  push:
+    branches: [ Orange ]
+  pull_request:
+    branches: [ Orange ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.21
+
+    - name: Download dependencies
+      run: go mod download
+      working-directory: ./golang  
+
+    - name: Run build
+      run: go build -v .
+      working-directory: ./golang
+
+    - name: Run test
+      run: go test ./...
+      working-directory: ./golang
