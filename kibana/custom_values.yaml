@@ -1,0 +1,28 @@
+# my-kibana-values.yaml - with HTTPS configuration
+elasticsearchHosts: "https://elasticsearch-master:9200"
+
+# Resource constraints
+resources:
+  requests:
+    cpu: "100m"
+    memory: "512Mi"
+  limits:
+    cpu: "500m"
+    memory: "1024Mi"
+
+# Increase startup delay
+readinessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 20
+  timeoutSeconds: 10
+  failureThreshold: 10
+
+# Single replica
+replicas: 1
+
+# Disable security for simplicity in this guide.
+# For production, enable security and configure user authentication.
+# auth:
+#   enabled: true
+#   elasticsearchUsername: "elastic" # If security is enabled on ES
+#   elasticsearchPassword: "changeme" # If security is enabled on ES

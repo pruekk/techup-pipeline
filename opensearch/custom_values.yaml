@@ -1,0 +1,101 @@
+# opensearch-values.yaml
+replicas: 1
+singleNode: true
+
+# Configure security only once
+securityConfig:
+  enabled: false
+
+# Remove duplicate security settings
+extraEnvs:
+  - name: discovery.type
+    value: "single-node"
+  # Remove the plugins.security.disabled from here
+  - name: DISABLE_INSTALL_DEMO_CONFIG
+    value: "true"
+  - name: DISABLE_SECURITY_PLUGIN
+    value: "true"
+
+# Increase memory allocation
+resources:
+  requests:
+    cpu: "0.5"
+    memory: "1Gi"
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+
+# Adjust Java heap size (50% of container memory)
+opensearchJavaOpts: "-Xms512m -Xmx512m"
+
+# Disable persistence
+persistence:
+  enabled: false
+
+# Simplify network configuration
+service:
+  type: ClusterIP
+
+# Disable all monitoring
+monitoring:
+  enabled: false
+
+# Increase startup timeouts
+readinessProbe:
+  failureThreshold: 5
+  initialDelaySeconds: 90
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# Disable anti-affinity
+antiAffinity: "soft"
+
+# Set cluster settings without duplicate security settings
+config:
+  opensearch.yml: |
+    cluster.name: opensearch-demo
+    node.name: ${HOSTNAME}
+    path.data: /usr/share/opensearch/data
+    network.host: 0.0.0.0
+    discovery.type: single-node
+    # Remove plugins.security.disabled from here as it's already set by securityConfig
+
+
+# # my-opensearch-values.yaml
+# clusterName: opensearch-cluster
+# nodeGroup: master
+# replicas: 1 # For demo/dev, consider 3 for production for high availability
+# minimumMasterNodes: 1
+# opensearchJavaOpts: "-Xmx256m -Xms256m"
+# resources:
+#   requests:
+#     cpu: "100m"
+#     memory: "512Mi"
+#   limits:
+#     cpu: "500m"
+#     memory: "1024Mi"
+
+# extraEnvs:
+# - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+#   value: "5dxoVxhswzMyn6i1"
+
+# config:
+#   opensearch.yml: |
+#     # Also ensure HTTP and Transport layers are not trying to use SSL
+#     plugins.security.ssl.http.enabled: true
+#     plugins.security.ssl.transport.enabled: true
+#     network.host: 0.0.0.0 # Binds to all interfaces
+#     http.port: 9200
+#     transport.port: 9300
+
+# # Ensure readiness probe is reasonable for startup
+# readinessProbe:
+#   failureThreshold: 3
+#   initialDelaySeconds: 60 # Adjusted for potentially longer startup with more resources
+#   periodSeconds: 10
+#   successThreshold: 1
+#   timeoutSeconds: 5
+
+# # You might want to enable persistence for production
+# persistence:
+#   enabled: false # Keep as per your original

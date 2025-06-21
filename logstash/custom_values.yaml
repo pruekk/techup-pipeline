@@ -1,0 +1,68 @@
+# logstash-values.yaml
+replicas: 1
+
+image: "asia-southeast1-docker.pkg.dev/devops-docker-demo-458213/golang-prometheus-metrics/logstash-opensearch"
+imageTag: "7.13.2-mod"
+
+# Minimal resources
+resources:
+  requests:
+    cpu: "0.2"
+    memory: "512Mi"
+  limits:
+    cpu: "0.5"
+    memory: "1Gi"
+
+# Configure Logstash
+logstashConfig:
+  logstash.yml: |
+    http.host: 0.0.0.0
+    xpack.monitoring.enabled: false
+
+# Configure Logstash pipeline
+logstashPipeline:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+      tcp {
+        port => 5170
+        codec => json
+      }
+    }
+
+    filter {
+      mutate {
+        add_field => { "environment" => "demo" }
+      }
+    }
+
+    output {
+      opensearch {
+        hosts => ["opensearch-cluster-master.logging:9200"]
+        index => "logs-%{+YYYY.MM.dd}"
+
+        manage_template => false
+      }
+      
+      # Add stdout output for debugging
+      stdout { codec => rubydebug }
+    }
+
+# Disable persistence
+persistence:
+  enabled: false
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+  - name: beats
+    port: 5044
+    protocol: TCP
+    targetPort: 5044
+  - name: fluent-bit
+    port: 5170
+    protocol: TCP
+    targetPort: 5170

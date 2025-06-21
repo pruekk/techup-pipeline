@@ -1,0 +1,38 @@
+# my-elasticsearch-values.yaml - with explicit overrides
+clusterName: elasticsearch
+nodeGroup: master
+replicas: 1
+persistence:
+  enabled: false
+esJavaOpts: "-Xmx128m -Xms128m"
+resources:
+  requests:
+    cpu: "100m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1024Mi"
+
+# Explicitly set to null to override any default
+masterService: null
+masterTerminationFix: false
+
+# Disable all cluster formation settings
+cluster:
+  maxNodesPerCluster: null
+  initialMasterNodes: null
+  bootstrapMasterNodeAffinity: null
+
+# Explicitly configure single-node discovery
+esConfig:
+  elasticsearch.yml: |
+    xpack.security.enabled: false
+    xpack.security.http.ssl.enabled: false
+    xpack.security.transport.ssl.enabled: false
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 200
+  periodSeconds: 10
+  successThreshold: 3
+  timeoutSeconds: 5

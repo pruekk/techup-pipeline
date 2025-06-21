@@ -1,0 +1,57 @@
+# opensearch-dashboards-values.yaml
+opensearchHosts: "http://opensearch-cluster-master:9200"
+
+# Disable security since OpenSearch has security disabled
+securityConfig:
+  enabled: false
+
+# Add environment variables to disable security
+extraEnvs:
+  - name: DISABLE_SECURITY_DASHBOARDS_PLUGIN
+    value: "true"
+
+# Minimal resources
+resources:
+  requests:
+    cpu: "0.2"
+    memory: "512Mi"
+  limits:
+    cpu: "0.5"
+    memory: "1Gi"
+
+service:
+  type: ClusterIP
+
+
+
+
+
+
+# # my-opensearch-dashboards-values.yaml
+# opensearchHosts: "http://opensearch-cluster-master:9200" # --- IMPORTANT FIX: Changed to HTTP ---
+# # Resource constraints
+# resources:
+#   requests:
+#     cpu: "200m" # Increased CPU request for better stability
+#     memory: "512Mi"
+#   limits:
+#     cpu: "500m"
+#     memory: "1024Mi"
+
+# # Increase startup delay (give it more time)
+# readinessProbe:
+#   initialDelaySeconds: 120 # Increased initial delay
+#   periodSeconds: 20
+#   timeoutSeconds: 10
+#   failureThreshold: 10
+
+# # Single replica
+# replicaCount: 1 # Note: OpenSearch Dashboards chart uses 'replicaCount'
+
+# # Disable authentication and SSL verification for demo purposes
+# opensearchConfig:
+#   opensearch_dashboards.yml: |
+#     opensearch.username: "admin"
+#     opensearch.password: "5dxoVxhswzMyn6i1"
+#     opensearch.ssl.verificationMode: "none" # Still good practice to set, even if using HTTP, for clarity
+#     opensearch.requestHeadersAllowlist: ["authorization", "Content-Type"] # Replaces requestHeadersWhitelist

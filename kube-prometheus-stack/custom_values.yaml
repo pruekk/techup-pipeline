@@ -1,0 +1,19 @@
+# my-prometheus-values.yaml (inside the kube-prometheus-stack directory or specified path)
+grafana:
+  enabled: true
+  adminPassword: prom-admin # Change this to a strong password in production!
+  service:
+    type: ClusterIP
+
+prometheus:
+  prometheusSpec:
+    # Enable multi-namespace scraping by allowing ServiceMonitors and PodMonitors to select namespaces
+    # ServiceMonitors and PodMonitors should be created in the `monitoring` namespace,
+    # but they can target services/pods in `cicd-pipeline-alpha` using `namespaceSelector`.
+    serviceMonitorSelectorNilUsesServicesOfTheNamespace: false
+    podMonitorSelectorNilUsesPodsOfTheNamespace: false
+    ruleSelectorNilUsesAll: false
+
+# You can disable Alertmanager if you don't need it for this setup
+alertmanager:
+  enabled: false
